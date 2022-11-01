@@ -46,3 +46,8 @@
 
 (define just-scan
   (sllgen:make-string-scanner scanner-spec-simple-interpreter grammar-simple-interpreter))
+  
+(sllgen:make-define-datatypes scanner-spec-simple-interpreter grammar-simple-interpreter)
+
+(define show-the-datatypes
+  (lambda () (sllgen:list-define-datatypes scanner-spec-simple-interpreter grammar-simple-interpreter)))
