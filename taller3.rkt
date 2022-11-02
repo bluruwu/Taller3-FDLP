@@ -151,3 +151,8 @@
                                  (buscar-pos vals pos)
                                  ; en caso no, busque de nuevo quitando esa parte ya buscada
                                  (buscar-variable env sym)))))))
+                                 
+;; función para probar booleanos
+(define true-value?
+  (lambda(x)
+    (not (zero? x))))
