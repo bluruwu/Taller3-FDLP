@@ -33,6 +33,8 @@
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     (expresion ("declare" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
+    (expresion ("procedimiento" "("(arbno identificador)")" expresion) procedimiento-exp)
+
     
    )
   )
@@ -105,7 +107,10 @@
       (variableLocal-exp (ids rands body)
                (let ((args (eval-rands rands env)))
                  (evaluar-expresion body
-                                  (extended-env ids args env)))))))
+                                  (extended-env ids args env))))
+      (procedimiento-exp(lista-ID exp)
+               (cerradura lista-ID exp env))
+      )))
 
 
 ;apply-primitive-bin: <primitiva> <expresion> <expresion> -> numero | string
@@ -199,6 +204,12 @@
   (lambda (rand env)
     (evaluar-expresion rand env)))
 
+;******************************************** Procedimientos *******************************************
+(define-datatype procVal procVal?
+  (cerradura
+   (lista-ID(list-of symbol?))
+   (exp expresion?)
+   (amb environment?)))
 
 
 
