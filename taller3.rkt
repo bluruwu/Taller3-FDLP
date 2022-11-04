@@ -32,6 +32,8 @@
     (primitiva-binaria ("concat") primitiva-concat)
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
+    (expresion ("declare" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
+    
    )
   )
 ;*******************************************************************************************
@@ -99,7 +101,11 @@
                    (apply-primitive-un prim (evaluar-expresion rand env)))
       (primapp-bin-exp (rand1 prim rand2)
                    (apply-primitive-bin prim (evaluar-expresion rand1 env) (evaluar-expresion rand2 env))
-                   ))))
+                   )             
+      (variableLocal-exp (ids rands body)
+               (let ((args (eval-rands rands env)))
+                 (evaluar-expresion body
+                                  (extended-env ids args env)))))))
 
 
 ;apply-primitive-bin: <primitiva> <expresion> <expresion> -> numero | string
@@ -181,3 +187,20 @@
 (define true-value?
   (lambda(x)
     (not (zero? x))))
+    
+;;;;funciones auxiliares para la expresion declare
+
+;;eval-rands evalua los operandos y los convierte en un ambiente
+(define eval-rands
+  (lambda (rands env)
+    (map (lambda (x) (eval-rand x env)) rands)))
+;;eval-rand ingresa el operando y lo llama para evaluar la expresion
+(define eval-rand
+  (lambda (rand env)
+    (evaluar-expresion rand env)))
+
+
+
+
+(interpretador)
+    
