@@ -71,7 +71,7 @@
   (lambda (pgm)
     (cases programa pgm
       (un-programa (body)
-                 (eval-expression body (init-env))))))
+                 (evaluar-expresion body (init-env))))))
 
 ; Ambiente inicial
 ;(define init-env
@@ -87,14 +87,39 @@
      '(1 2 3 "hola" "FLP")
      (empty-env))))
 
-;eval-expression: <expression> <enviroment> -> numero
+;eval-expression: <expression> <enviroment> -> numero | string
 ; evalua la expresión en el ambiente de entrada
-(define eval-expression
+(define evaluar-expresion
   (lambda (exp env)
     (cases expresion exp
-      (numero-lit (numero) numero)
+      (numero-lit (datum) datum)
+      (texto-lit (txt) txt)
       (var-exp (id) (buscar-variable env id))
-      (else eopl:error '"No existe dentro de la gramática"))))
+      (primapp-un-exp (prim rand)
+                   (apply-primitive-un prim (evaluar-expresion rand env)))
+      (primapp-bin-exp (rand1 prim rand2)
+                   (apply-primitive-bin prim (evaluar-expresion rand1 env) (evaluar-expresion rand2 env))
+                   ))))
+
+
+;apply-primitive-bin: <primitiva> <expresion> <expresion> -> numero | string
+(define apply-primitive-bin
+  (lambda (prim args1 args2)
+    (cases primitiva-binaria prim
+      (primitiva-suma () (+ args1 args2))
+      (primitiva-resta () (- args1 args2))
+      (primitiva-multi () (* args1 args2))
+      (primitiva-div () (/ args1 args2))
+      (primitiva-concat () (string-append args1 args2))
+      )))
+
+;apply-primitive-un: <primitiva> <expresion> <expresion> -> numero
+(define apply-primitive-un
+  (lambda (prim args)
+    (cases primitiva-unaria prim
+      (primitiva-add1 () (+ args 1))
+      (primitiva-sub1 () (- args 1))
+      )))
 
 ;***********************Funciones Auxiliares******************************
 
