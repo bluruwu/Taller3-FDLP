@@ -30,6 +30,7 @@
     (primitiva-binaria ("*") primitiva-multi)
     (primitiva-binaria ("/") primitiva-div)
     (primitiva-binaria ("concat") primitiva-concat)
+    (primitiva-unaria ("longitud") primitiva-longitud)
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI") if-exp)
@@ -133,6 +134,7 @@
 (define apply-primitive-un
   (lambda (prim args)
     (cases primitiva-unaria prim
+      (primitiva-longitud () (string-length args))
       (primitiva-add1 () (+ args 1))
       (primitiva-sub1 () (- args 1))
       )))
