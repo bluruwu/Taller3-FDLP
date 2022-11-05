@@ -32,6 +32,7 @@
     (primitiva-binaria ("concat") primitiva-concat)
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
+    (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI") if-exp)
     (expresion ("declare" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
     (expresion ("procedimiento" "("(arbno identificador)")" expresion) procedimiento-exp)
 
@@ -103,7 +104,11 @@
                    (apply-primitive-un prim (evaluar-expresion rand env)))
       (primapp-bin-exp (rand1 prim rand2)
                    (apply-primitive-bin prim (evaluar-expresion rand1 env) (evaluar-expresion rand2 env))
-                   )             
+                   )
+      (if-exp (test-exp true-exp false-exp)
+              (if (true-value? (evaluar-expresion test-exp env))
+                  (evaluar-expresion true-exp env)
+                  (evaluar-expresion false-exp env)))                   
       (variableLocal-exp (ids rands body)
                (let ((args (eval-rands rands env)))
                  (evaluar-expresion body
