@@ -34,17 +34,18 @@
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI") if-exp)
-    (expresion ("declare" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
-    (expresion ("procedimiento" "("(arbno identificador)")" expresion) procedimiento-exp)
-
-    
+    (expresion ("declarar" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
+    (expresion ("procedimiento" "("(separated-list identificador",")")" "haga" expresion "finProc") procedimiento-exp)
+    (expresion ("evaluar" expresion "("(separated-list expresion ",")")" "finEval") app-exp)
+    (expresion ("declaraRec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion)  "{" expresion "}") 
+                letrec-exp)
    )
   )
 ;*******************************************************************************************
 ;Parser, Scanner, Interfaz
 
 ;El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
-
+;;letrec @fact(@n) = Si @n entonces (@n * (@fact sub1(@n))) sino 1 finSi in (@fact 20)
 (define scan&parse
   (sllgen:make-string-parser scanner-spec-simple-interpreter grammar-simple-interpreter))
 
@@ -114,8 +115,18 @@
                (let ((args (eval-rands rands env)))
                  (evaluar-expresion body
                                   (extended-env ids args env))))
-      (procedimiento-exp(lista-ID exp)
-               (cerradura lista-ID exp env))
+      (procedimiento-exp (ids body)
+                (cerradura ids body env))
+      (app-exp (rator rands)
+               (let ((proc (evaluar-expresion rator env))
+                     (args (eval-rands rands env)))
+                 (if (procVal? proc)
+                     (apply-procedure proc args)
+                     (eopl:error 'eval-expression
+                                 "Attempt to apply non-procedure ~s" proc))))
+      (letrec-exp (proc-names idss bodies letrec-body)
+                  (evaluar-expresion letrec-body
+                                   (extend-env-recursively proc-names idss bodies env)))
       )))
 
 
@@ -175,9 +186,22 @@
    (empty-env)
    (extended-env (syms (list-of symbol?))
                         (vals (list-of scheme-value?))
-                        (env environment?)))
+                        (env environment?))
+   (recursively-extended-env-record
+                        (proc-names (list-of symbol?))
+                        (idss (list-of (list-of symbol?)))
+                        (bodies (list-of expresion?))
+                        (env environment?))
+  )
 
 (define scheme-value? (lambda (v) #t))
+
+;extend-env-recursively: <list-of symbols> <list-of <list-of symbols>> <list-of expressions> environment -> environment
+;función que crea un ambiente extendido para procedimientos recursivos
+(define extend-env-recursively
+  (lambda (proc-names idss bodies old-env)
+    (recursively-extended-env-record
+     proc-names idss bodies old-env)))
 
 ;función que busca un símbolo en un ambiente dado
 (define buscar-variable
@@ -193,7 +217,16 @@
                                  ; en caso si, traiga la posicion, y busque esa posicion en la lista de valores que le corresponde
                                  (buscar-pos vals pos)
                                  ; en caso no, busque de nuevo quitando esa parte ya buscada
-                                 (buscar-variable env sym)))))))
+                                 (buscar-variable env sym))))
+      (recursively-extended-env-record (proc-names idss bodies old-env)
+                                       (let ((pos (list-find-position sym proc-names)))
+                                         (if (number? pos)
+                                             (cerradura (list-ref idss pos)
+                                                      (list-ref bodies pos)
+                                                      env)
+                                             (buscar-variable old-env sym))))
+      )))
+ 
                                  
 ;; función para probar booleanos
 (define true-value?
@@ -211,6 +244,26 @@
   (lambda (rand env)
     (evaluar-expresion rand env)))
 
+;****************************************************************************************
+;Funciones Auxiliares
+
+; funciones auxiliares para encontrar la posición de un símbolo
+; en la lista de símbolos de unambiente
+
+(define list-find-position
+  (lambda (sym los)
+    (list-index (lambda (sym1) (eqv? sym1 sym)) los)))
+
+(define list-index
+  (lambda (pred ls)
+    (cond
+      ((null? ls) #f)
+      ((pred (car ls)) 0)
+      (else (let ((list-index-r (list-index pred (cdr ls))))
+              (if (number? list-index-r)
+                (+ list-index-r 1)
+                #f))))))
+
 ;******************************************** Procedimientos *******************************************
 (define-datatype procVal procVal?
   (cerradura
@@ -218,6 +271,13 @@
    (exp expresion?)
    (amb environment?)))
 
+
+;apply-procedure: evalua el cuerpo de un procedimientos en el ambiente extendido correspondiente
+(define apply-procedure
+  (lambda (proc args)
+    (cases procVal proc
+      (cerradura (ids body env)
+               (evaluar-expresion body (extended-env ids args env))))))
 
 
 (interpretador)
