@@ -34,7 +34,7 @@
     (primitiva-unaria ("add1") primitiva-add1)
     (primitiva-unaria ("sub1") primitiva-sub1)
     (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI") if-exp)
-    (expresion ("declarar" "("(arbno identificador "=" expresion ";" )   ")" "{" expresion"}") variableLocal-exp)
+    (expresion ("declarar" "("  (separated-list identificador "=" expresion ";")   ")" "{" expresion"}") variableLocal-exp)
     (expresion ("procedimiento" "("(separated-list identificador",")")" "haga" expresion "finProc") procedimiento-exp)
     (expresion ("evaluar" expresion "("(separated-list expresion ",")")" "finEval") app-exp)
     (expresion ("declaraRec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion)  "{" expresion "}") 
