@@ -108,7 +108,7 @@
                    (apply-primitive-bin prim (evaluar-expresion rand1 env) (evaluar-expresion rand2 env))
                    )
       (if-exp (test-exp true-exp false-exp)
-              (if (true-value? (evaluar-expresion test-exp env))
+              (if (valor-verdad? (evaluar-expresion test-exp env))
                   (evaluar-expresion true-exp env)
                   (evaluar-expresion false-exp env)))                   
       (variableLocal-exp (ids rands body)
@@ -229,7 +229,7 @@
  
                                  
 ;; función para probar booleanos
-(define true-value?
+(define valor-verdad?
   (lambda(x)
     (not (zero? x))))
     
